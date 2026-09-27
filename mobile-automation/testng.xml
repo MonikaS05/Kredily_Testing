@@ -1,0 +1,12 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd">
+<suite name="Kredily Mobile Automation Suite" verbose="1">
+    <test name="HRMS Android App Tests">
+        <classes>
+            <class name="com.kredily.automation.tests.LoginTest"/>
+            <class name="com.kredily.automation.tests.DashboardTest"/>
+            <class name="com.kredily.automation.tests.AttendanceTest"/>
+            <class name="com.kredily.automation.tests.LeaveTest"/>
+        </classes>
+    </test>
+</suite>

@@ -1,0 +1,23 @@
+# Compiled Java class files
+*.class
+
+# Mobile Automation Maven build output
+mobile-automation/target/
+target/
+
+# IDE files
+.idea/
+*.iml
+.vscode/
+.settings/
+.project
+.classpath
+
+# Logs and OS files
+*.log
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Node modules (if any)
+node_modules/
