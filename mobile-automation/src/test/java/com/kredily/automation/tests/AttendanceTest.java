@@ -2,8 +2,7 @@ package com.kredily.automation.tests;
 
 import com.kredily.automation.base.BaseTest;
 import com.kredily.automation.pages.AttendancePage;
-import com.kredily.automation.pages.LoginPage;
-import com.kredily.automation.utils.ConfigReader;
+import com.kredily.automation.pages.DashboardPage;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
@@ -11,15 +10,27 @@ public class AttendanceTest extends BaseTest {
 
     @Test(description = "AUTO-004: Verify employee can perform Clock In and activate working session timer")
     public void testClockInJourney() {
-        LoginPage loginPage = new LoginPage(driver);
-        AttendancePage attendancePage = new AttendancePage(driver);
+        Assert.assertNotNull(driver, "Driver was not created - check Appium and adb devices");
 
-        loginPage.performLogin(ConfigReader.get("test.user.email"), ConfigReader.get("test.user.password"));
+        DashboardPage dashboard = new DashboardPage(driver);
+        AttendancePage attendance = new AttendancePage(driver);
 
-        attendancePage.clickClockIn();
-        attendancePage.confirmClockIn();
+        Assert.assertTrue(dashboard.isDashboardLoaded(),
+                "Dashboard did not load - phone is probably logged out. Log in once and re-run.");
+        Assert.assertTrue(attendance.isClockButtonDisplayed(), "Clock button should be visible on the dashboard");
 
-        Assert.assertTrue(attendancePage.isClockedIn(), 
-                "Working timer/Clocked-in state should be displayed after clocking in.");
+        // Precondition: make sure we start from the "Clock In" state
+        if (!attendance.isReadyToClockIn()) {
+            attendance.clickClockOut();
+            Assert.assertTrue(attendance.isReadyToClockIn(),
+                    "Could not reset to Clock In state. Label: " + attendance.getClockButtonLabel());
+        }
+
+        attendance.clickClockIn();
+        attendance.confirmClockIn();
+
+        Assert.assertTrue(attendance.isClockedIn(),
+                "Button should change to 'Clock Out' after clocking in. Status: '"
+                        + attendance.getStatusText() + "', timer: '" + attendance.getTimerText() + "'");
     }
 }

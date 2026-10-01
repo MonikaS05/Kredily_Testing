@@ -1,20 +1,18 @@
-﻿# Kredily HRMS — Mobile Automation Framework
+# Kredily HRMS — Mobile Automation Framework
 
-This module contains the enterprise-grade **Mobile Test Automation Suite** for the Kredily HRMS Android APK (`com.kredily.mobile`), implemented using **Java**, **Appium 2.x**, **UiAutomator2**, and **TestNG** following the **Page Object Model (POM)** architectural pattern.
+This module contains the **Mobile Test Automation Suite** for the Kredily HRMS Android APK (`com.kredily.mobile`), implemented using **Java 25 (compiled to release 17)**, **Appium 3.8.0**, **UiAutomator2 8.7.0**, and **TestNG** following the **Page Object Model (POM)** architectural pattern.
 
 ---
 
-## 1. Automated User Journeys
+## 1. Automated User Journeys & Execution Status
 
-The framework automates the 5 high-priority business journeys specified in the assignment:
-
-| Test ID | User Journey | Objective & Scope | Assertion Highlights |
+| Test ID | User Journey | Target Flow & Assertions | Status on Real Device (realme RMX3491) |
 | :--- | :--- | :--- | :--- |
-| **AUTO-001** | Valid Login | Authenticate with valid employee credentials and navigate to Home. | `Assert.assertTrue(dashboardPage.isHomeDashboardLoaded())` |
-| **AUTO-002** | Invalid Login | Verify incorrect password rejection without locking the account. | `Assert.assertTrue(loginPage.isErrorMessageDisplayed())` |
-| **AUTO-003** | Dashboard Validation | Validate critical dashboard widgets (Shift, Approvals, Team Today, This Week, Quick Actions). | Assert all sections are visible on the Home view. |
-| **AUTO-004** | Attendance / Check-In | Complete Clock In workflow, accept permissions, and verify session timer. | `Assert.assertTrue(attendancePage.isClockedIn())` |
-| **AUTO-005** | Leave Application | Submit a Casual Leave request and verify it appears as `Pending` under *My Requests*. | `Assert.assertTrue(leavePage.isPendingRequestVisible())` |
+| **AUTO-001** | Valid Login | Enter email, tap "Sign in with password", enter password, tap Sign in, verify Home. | **Passed** |
+| **AUTO-002** | Invalid Login | Enter email, tap "Sign in with password", enter wrong password from `config.properties`, verify error feedback. | **Passed** |
+| **AUTO-003** | Dashboard Validation | Starts from a logged-in session; validates Shift card, Needs you/Approvals, Team today, This week, Quick actions, and bottom tabs. | **Passed** |
+| **AUTO-004** | Attendance Check-In | Tap Clock In, Verify & confirm screen (GPS, geofence, shift window), tap bottom Clock In, then Done screen. | **Clock-in works; final "Done" step not yet validated** |
+| **AUTO-005** | Leave Application | Submit Casual Leave request (satisfying 15-day advance rule) and verify Pending under My Requests. | **Implemented, not yet executed** |
 
 ---
 
@@ -24,16 +22,16 @@ The suite follows the **Page Object Model (POM)** to ensure maintainability, reu
 
 ```
 mobile-automation/
-├── pom.xml                                      <- Maven project dependencies
+├── pom.xml                                      <- Maven project dependencies (release 17)
 ├── testng.xml                                   <- TestNG execution suite runner
 ├── src/main/
 │   ├── java/com/kredily/automation/
 │   │   ├── base/
-│   │   │   └── BaseTest.java                    <- Driver lifecycle, capabilities, explicit waits
+│   │   │   └── BaseTest.java                    <- Driver lifecycle, capabilities, explicit waits, adb permissions
 │   │   ├── pages/
-│   │   │   ├── LoginPage.java                   <- Login screen actions & BUG-005 retry handling
-│   │   │   ├── DashboardPage.java               <- Home dashboard elements & navigation
-│   │   │   ├── AttendancePage.java              <- Clock in/out actions & timer validation
+│   │   │   ├── LoginPage.java                   <- Email, Sign in with password, password flow, hideKeyboard
+│   │   │   ├── DashboardPage.java               <- Verified locators for Home dashboard widgets
+│   │   │   ├── AttendancePage.java              <- Clock in/out actions & status validation
 │   │   │   └── LeavePage.java                   <- Leave form, balance & request validation
 │   │   └── utils/
 │   │       └── ConfigReader.java                <- Configuration properties reader
@@ -49,40 +47,27 @@ mobile-automation/
 
 ---
 
-## 3. Prerequisites & Environment Setup
+## 3. Real-Device Challenges & Solutions
+- **React Native Framework:** Element texts can shift; used stable `@resource-id` and accessibility properties.
+- **ColorOS / realme ADB Restrictions:** Enabled "Disable permission monitoring" in Developer Options and configured `appium:ignoreHiddenApiPolicyError` and `noReset=true`.
+- **Keyboard Handling:** Dismissed soft keyboard before clicking action buttons (`driver.hideKeyboard()`).
+- **Session State Isolation:** Maintained separate flows for logged-out authentication checks versus active dashboard/clock-in checks.
 
-1. **Java Development Kit (JDK):** Version 17 or higher (tested with JDK 25 LTS).
+---
+
+## 4. Prerequisites & Environment Setup
+
+1. **Java Development Kit (JDK):** Version 17+ (or JDK 25 compiled with release 17).
 2. **Apache Maven:** Version 3.8 or higher.
-3. **Node.js & Appium 2.x:**
+3. **Android SDK:** Configured with `ANDROID_HOME` pointing to SDK directory.
+4. **Node.js & Appium 3.8.0:**
    ```bash
    npm install -g appium
    appium driver install uiautomator2
    ```
-4. **Android SDK:** Configured with `ANDROID_HOME` and `platform-tools` in system `PATH`.
-5. **Kredily Android APK:**
-   - Download link: `https://download.aiagent.kredily.com/static/kredily-mobile-v2.apk`
-   - Test Account: `peoplekredily1@yopmail.com` / `Pass@9865`
-
----
-
-## 4. Configuration
-
-Edit `src/main/resources/config.properties` or pass JVM arguments to configure the target device:
-
-```properties
-appium.server.url=http://127.0.0.1:4723/
-device.name=Android Emulator
-platform.name=Android
-platform.version=13.0
-automation.name=UiAutomator2
-app.package=com.kredily.mobile
-app.activity=com.kredily.mobile.MainActivity
-auto.grant.permissions=true
-
-# Test Account
-test.user.email=peoplekredily1@yopmail.com
-test.user.password=Pass@9865
-```
+5. **Physical Device Setup:**
+   - Enable USB Debugging.
+   - For realme/Oppo: enable "Disable permission monitoring".
 
 ---
 
@@ -93,9 +78,8 @@ test.user.password=Pass@9865
 appium --use-plugins=relaxed-caps
 ```
 
-### B. Launch an Android Device or Emulator
+### B. Verify Device Connection
 ```bash
-# Verify connected device
 adb devices
 ```
 
@@ -107,11 +91,12 @@ mvn clean test
 
 ### D. Run Specific Test Class
 ```bash
-mvn test -Dtest=LoginTest
+# Run Login Tests (Ensure app is logged out before running)
+mvn clean test -Dtest=LoginTest
+
+# Run Dashboard Test (Ensure app is logged in before running)
+mvn clean test -Dtest=DashboardTest
+
+# Run Attendance Test (Ensure app is logged in before running)
+mvn clean test -Dtest=AttendanceTest
 ```
-
----
-
-## 6. Resilience & Defect Workaround Handling
-
-During manual test exploration, **BUG-005** (*Continue button requires two taps after entering email*) was discovered. To ensure the automated test suite remains resilient and does not fail intermittently due to this application defect, `LoginPage.java` incorporates an intelligent retry mechanism that checks whether the password field has appeared; if the keyboard dismiss consumed the first tap, a second tap is dispatched automatically.

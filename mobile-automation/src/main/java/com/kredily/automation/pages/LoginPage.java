@@ -13,12 +13,20 @@ public class LoginPage {
     private AndroidDriver driver;
     private WebDriverWait wait;
 
-    // Locators
-    private final By emailOrMobileField = AppiumBy.xpath("//android.widget.EditText[contains(@text,'Email') or contains(@hint,'Email') or @index='0']");
-    private final By continueButton = AppiumBy.xpath("//android.widget.Button[@text='Continue' or contains(@text,'Continue')]");
-    private final By passwordField = AppiumBy.xpath("//android.widget.EditText[contains(@text,'Password') or @password='true']");
-    private final By signInButton = AppiumBy.xpath("//android.widget.Button[@text='Sign in' or contains(@text,'Sign in')]");
-    private final By errorMessageText = AppiumBy.xpath("//android.widget.TextView[contains(@text,'Incorrect password') or contains(@text,'attempts remaining') or contains(@text,'Enter your email')]");
+    // ---------- Locators (verified from real screen dumps) ----------
+    // Screen 1: email / mobile
+    private final By emailOrMobileField = AppiumBy.xpath("//*[@resource-id='auth-ident']");
+    private final By continueButton = AppiumBy.xpath("//*[@resource-id='auth-continue']");
+    private final By signInWithPasswordButton = AppiumBy.xpath("//*[@resource-id='auth-alt']");
+
+    // Screen 2: password
+    private final By passwordScreenTitle = AppiumBy.xpath("//android.widget.TextView[@text='Enter password']");
+    private final By passwordField = AppiumBy.xpath("//*[@resource-id='auth-pass']");
+    private final By signInButton = AppiumBy.xpath("//*[@resource-id='auth-signin']");
+    private final By backButton = AppiumBy.xpath("//*[@resource-id='auth-back']");
+
+    // NOT yet verified - need a dump of the screen after a wrong password
+    private final By errorMessageText = AppiumBy.xpath("//android.widget.TextView[contains(@text,'Incorrect password') or contains(@text,'attempts remaining') or contains(@text,'Enter your email') or contains(@text,'Invalid')]");
     private final By unverifiedAccountText = AppiumBy.xpath("//android.widget.TextView[contains(@text,'not yet verified')]");
 
     public LoginPage(AndroidDriver driver) {
@@ -28,48 +36,89 @@ public class LoginPage {
 
     public void enterEmailOrMobile(String email) {
         WebElement input = wait.until(ExpectedConditions.visibilityOfElementLocated(emailOrMobileField));
+        input.click();
         input.clear();
         input.sendKeys(email);
     }
+    public boolean isLoginScreenDisplayed() {
+        try {
+            return new WebDriverWait(driver, Duration.ofSeconds(5))
+                    .until(ExpectedConditions.visibilityOfElementLocated(emailOrMobileField))
+                    .isDisplayed();
+        } catch (Exception e) {
+            return false;
+        }
+    }
 
+    public void loginIfNeeded(String email, String password) {
+        if (isLoginScreenDisplayed()) {
+            performLogin(email, password);
+        }
+    }
     /**
-     * Taps Continue. Handles BUG-005 where a second tap is required
-     * if the soft keyboard only was dismissed on the first tap.
+     * Taps "Sign in with password" to open the password screen.
+     * Handles BUG-005 (a second tap is sometimes needed): if the password
+     * screen has not appeared within 2 seconds, tap once more.
      */
-    public void clickContinue() {
-        WebElement btn = wait.until(ExpectedConditions.elementToBeClickable(continueButton));
+    public void clickSignInWithPassword() {
+        try {
+            driver.hideKeyboard();
+        } catch (Exception ignored) {
+        }
+
+        WebElement btn = wait.until(ExpectedConditions.elementToBeClickable(signInWithPasswordButton));
         btn.click();
-        
-        // Resilience check for BUG-005: if password field did not appear within 2 seconds, tap again
+
         try {
             new WebDriverWait(driver, Duration.ofSeconds(2))
                     .until(ExpectedConditions.visibilityOfElementLocated(passwordField));
         } catch (Exception e) {
             try {
-                if (driver.findElements(continueButton).size() > 0) {
-                    driver.findElement(continueButton).click();
+                if (!driver.findElements(signInWithPasswordButton).isEmpty()) {
+                    driver.findElement(signInWithPasswordButton).click();
                 }
             } catch (Exception ignored) {
             }
         }
     }
 
+    /**
+     * Kept so existing tests that call clickContinue() still compile.
+     * The password flow goes through "Sign in with password", so this delegates to it.
+     */
+    public void clickContinue() {
+        clickSignInWithPassword();
+    }
+
     public void enterPassword(String password) {
         WebElement input = wait.until(ExpectedConditions.visibilityOfElementLocated(passwordField));
+        input.click();
         input.clear();
         input.sendKeys(password);
     }
 
     public void clickSignIn() {
+        try {
+            driver.hideKeyboard();
+        } catch (Exception ignored) {
+        }
         WebElement btn = wait.until(ExpectedConditions.elementToBeClickable(signInButton));
         btn.click();
     }
 
     public void performLogin(String email, String password) {
         enterEmailOrMobile(email);
-        clickContinue();
+        clickSignInWithPassword();
         enterPassword(password);
         clickSignIn();
+    }
+
+    public boolean isPasswordScreenDisplayed() {
+        try {
+            return wait.until(ExpectedConditions.visibilityOfElementLocated(passwordScreenTitle)).isDisplayed();
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     public boolean isErrorMessageDisplayed() {

@@ -1,22 +1,23 @@
-﻿# Kredily HRMS — AI-Assisted QA Documentation
+# Kredily HRMS — AI-Assisted QA Documentation
 
 **Tester Name:** Monika Shankar  
-**AI Tool Used:** ChatGPT (OpenAI)  
-**Activity:** AI-Assisted QA Review & Test Coverage Enhancement  
+**AI Tools Used:** ChatGPT (OpenAI) & Claude (Anthropic)  
+**Activity:** AI-Assisted QA Review & Technical Automation Debugging  
 **Application:** Kredily HRMS Android Mobile APK  
 
 ---
 
 ## 1. Objective & Purpose of AI Assistance
 
-The objective was to leverage Generative AI as an intelligent **QA Review Assistant** to perform static analysis and review of manually engineered test scenarios. The primary goal was to verify whether any critical edge cases, negative workflows, boundary validations, or authentication/session states were overlooked during the initial manual test design.
+The objective was to leverage Generative AI in two specific roles:
+1. **QA Review Assistant (ChatGPT):** Performing static analysis and review of manually drafted test cases to identify overlooked edge cases, negative workflows, boundary validations, or authentication/session states.
+2. **Debugging Assistant (Claude):** Assisting with technical setup and debugging when configuring the Appium automation framework, realme ADB hidden permission policies, and React Native locator stabilization.
 
 ---
 
-## 2. Prompt Used
+## 2. Prompts Used
 
-The following structured prompt was provided to the AI:
-
+### Prompt for QA Review (ChatGPT):
 ```text
 Act as a senior QA engineer and review the test cases I prepared for the Kredily HRMS Android application. 
 Check whether my test cases adequately cover the application's major workflows, positive scenarios, 
@@ -27,29 +28,29 @@ Do not completely generate or rewrite my test cases. Your role is only to review
 that I should validate manually. Do not assume that suggested scenarios are actual application behavior.
 ```
 
+### Technical Debugging Assistance (Claude):
+AI was also consulted while diagnosing Appium server timeouts, handling ColorOS / realme adb permission blocks (`ignoreHiddenApiPolicyError`), dismissing Android soft keyboards on credential input, and stabilizing Page Object locators.
+
 ---
 
-## 3. AI-Generated Output & Suggestions
+## 3. AI-Generated Review Guidance & Suggestions
 
-The AI acted strictly within the assigned role of a QA consultant and proposed the following review areas:
-1. **Workflow Completeness:** Evaluated whether all key HRMS pillars (Authentication, Attendance, Leaves, Approvals, Payroll, Expense) had baseline end-to-end scenarios.
+1. **Workflow Completeness:** Evaluated whether all key HRMS pillars (Authentication, Attendance, Leaves, Approvals, Payroll, Expense) had baseline scenarios.
 2. **Negative Scenarios:**
-   - Suggested verifying mandatory field validations across forms (e.g., submitting leave without reason, expense without category).
+   - Suggested verifying mandatory field validations across forms.
    - Suggested testing invalid credential boundaries and password attempt lockouts.
 3. **Edge Cases & Business Rule Boundaries:**
-   - Suggested validating date constraints on leave applications (e.g., policy constraints on advance leave application, exceeding accrued leave balance).
+   - Suggested validating date constraints on leave applications (e.g., advance notice requirements, overdrafts).
    - Suggested checking multiple punch cycles (e.g., Clock In → Clock Out → Clock In again on the same shift).
 4. **Data Synchronization & State Verification:**
-   - Suggested cross-verifying attendance records across personal (`Me`) views and organizational/team (`Team`) views.
+   - Suggested cross-verifying attendance records across personal (`Me`) views and organizational (`Team`) views.
    - Suggested checking regularizations and approval states.
-5. **Session & Security:**
-   - Suggested checking behavior during OTP login with unverified/inactive accounts.
 
 ---
 
 ## 4. What Was Changed / Validated by the QA Engineer
 
-As a QA Engineer, AI recommendations were evaluated with human discernment and empirical validation against the live Kredily Android APK:
+As a QA Engineer, all AI recommendations and technical suggestions were evaluated with human discernment and empirical validation against the live Kredily Android APK:
 
 1. **Empirical Validation of Suggested Scenarios:**
    - Explored and confirmed the **15-day advance notice rule** for future-dated leaves (`KRD-FUN-014`).
@@ -67,5 +68,5 @@ As a QA Engineer, AI recommendations were evaluated with human discernment and e
 
 ## 5. QA Engineer's Assessment & Ethical AI Boundaries
 
-- **Human-in-the-Loop Principle:** AI served purely as a brainstorming and advisory partner. All test execution, observations, evidence capture, bug logging, severity/priority triage, and defect reproductions were conducted 100% manually on the mobile device.
+- **Human-in-the-Loop Principle:** AI served purely as a brainstorming, review, and debugging partner. All test execution, observations, device commands, evidence capture, bug logging, severity/priority triage, and defect reproductions were conducted 100% manually and verified on the physical device.
 - **Verification Integrity:** Every test result recorded in the test suite and bug database represents genuine, observed software behavior.

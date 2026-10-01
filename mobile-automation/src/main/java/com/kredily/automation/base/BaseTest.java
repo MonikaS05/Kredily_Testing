@@ -28,6 +28,8 @@ public class BaseTest {
             options.setAppPackage(ConfigReader.get("app.package"));
             options.setAppActivity(ConfigReader.get("app.activity"));
             options.setAutoGrantPermissions(Boolean.parseBoolean(ConfigReader.get("auto.grant.permissions")));
+            options.setIgnoreHiddenApiPolicyError(true);
+            options.setNoReset(true);
 
             String appPath = ConfigReader.get("app.path");
             if (appPath != null && !appPath.trim().isEmpty()) {
@@ -36,6 +38,9 @@ public class BaseTest {
 
             String serverUrl = ConfigReader.get("appium.server.url");
             driver = new AndroidDriver(new URL(serverUrl), options);
+            String appPackage = ConfigReader.get("app.package");
+            driver.terminateApp(appPackage);
+            driver.activateApp(appPackage);
 
             int explicitWaitSec = ConfigReader.getInt("explicit.wait", 15);
             wait = new WebDriverWait(driver, Duration.ofSeconds(explicitWaitSec));

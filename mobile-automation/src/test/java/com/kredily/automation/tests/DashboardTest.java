@@ -2,25 +2,32 @@ package com.kredily.automation.tests;
 
 import com.kredily.automation.base.BaseTest;
 import com.kredily.automation.pages.DashboardPage;
-import com.kredily.automation.pages.LoginPage;
-import com.kredily.automation.utils.ConfigReader;
 import org.testng.Assert;
 import org.testng.annotations.Test;
+import org.testng.asserts.SoftAssert;
 
 public class DashboardTest extends BaseTest {
 
-    @Test(description = "AUTO-003: Verify critical Home dashboard sections load after successful login")
+    @Test(description = "AUTO-003: Dashboard validation (app starts already logged in)")
     public void testDashboardSections() {
-        LoginPage loginPage = new LoginPage(driver);
-        DashboardPage dashboardPage = new DashboardPage(driver);
+        Assert.assertNotNull(driver, "Driver was not created - check Appium server and phone connection (adb devices)");
 
-        loginPage.performLogin(ConfigReader.get("test.user.email"), ConfigReader.get("test.user.password"));
+        DashboardPage dashboard = new DashboardPage(driver);
+        Assert.assertTrue(dashboard.isDashboardLoaded(),
+                "Dashboard did not load - the phone is probably logged out. Log in once and re-run.");
 
-        Assert.assertTrue(dashboardPage.isHomeDashboardLoaded(), "Home Dashboard must be visible.");
-        Assert.assertTrue(dashboardPage.isShiftSectionDisplayed(), "Shift section must be visible.");
-        Assert.assertTrue(dashboardPage.isApprovalsSectionDisplayed(), "Approvals section must be visible.");
-        Assert.assertTrue(dashboardPage.isTeamTodaySectionDisplayed(), "Team Today section must be visible.");
-        Assert.assertTrue(dashboardPage.isThisWeekSectionDisplayed(), "This Week attendance section must be visible.");
-        Assert.assertTrue(dashboardPage.isQuickActionsDisplayed(), "Quick Actions section must be visible.");
+        SoftAssert soft = new SoftAssert();
+        soft.assertTrue(dashboard.isHomeTabSelected(), "Home tab should be selected");
+        soft.assertTrue(dashboard.isGreetingDisplayed(), "Greeting should be displayed");
+        soft.assertTrue(dashboard.isShiftTimingDisplayed(), "Shift timing should be displayed in the header");
+        soft.assertTrue(dashboard.isShiftCardDisplayed(), "Shift card should be displayed");
+        soft.assertTrue(dashboard.isClockButtonDisplayed(), "Clock In/Out button should be displayed");
+        soft.assertTrue(dashboard.isNeedsYouDisplayed(), "'Needs you' section should be displayed");
+        soft.assertTrue(dashboard.isApprovalsRowDisplayed(), "Approvals row should be displayed");
+        soft.assertTrue(dashboard.isTeamTodayDisplayed(), "Team today (In/Late/Leave/Absent) should be displayed");
+        soft.assertTrue(dashboard.isThisWeekDisplayed(), "'This week' section should be displayed");
+        soft.assertTrue(dashboard.isQuickActionsDisplayed(), "Quick actions should be displayed");
+        soft.assertTrue(dashboard.isBottomNavDisplayed(), "Bottom navigation tabs should be displayed");
+        soft.assertAll();
     }
 }

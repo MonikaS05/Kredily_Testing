@@ -1,4 +1,4 @@
-﻿# Kredily HRMS Android Application — Final QA Summary Report
+# Kredily HRMS Android Application — Final QA Summary Report
 
 **Author:** Monika Shankar  
 **Role:** Intern QA Engineer  
@@ -11,9 +11,9 @@
 
 ## 1. Executive Summary
 
-This comprehensive Quality Assurance assessment evaluated the Kredily HRMS Android application across functional integrity, mobile responsiveness, workflow continuity, backend API behavior, and automation readiness.
+This Quality Assurance assessment evaluated the Kredily HRMS Android application across functional integrity, mobile responsiveness, workflow continuity, backend API behavior, and automation readiness.
 
-A total of **21 functional test cases** were executed across core HRMS modules. Concurrently, **5 genuine defects** were identified, triaged, and documented with complete reproduction steps and multimedia evidence. In addition, an **Appium + Java + TestNG mobile automation suite** was architected for 5 critical user journeys, and a comprehensive **API testing suite with Postman collection and automated test runner** was established.
+A total of **21 functional test cases** were executed across core HRMS modules. Concurrently, **5 genuine defects** were identified, triaged, and documented with complete reproduction steps and multimedia evidence. In addition, an **Appium + Java + TestNG mobile automation suite** was implemented for 5 critical user journeys (with 3 passing on a physical realme device), and an **API testing suite with Postman collection** was established.
 
 ---
 
@@ -63,43 +63,39 @@ Defect Severity Distribution:
 
 ---
 
-## 4. Mobile Automation Architecture
+## 4. Mobile Automation Architecture & Execution Status
 
-An enterprise-grade **Mobile Automation Framework** was designed using:
-- **Language:** Java 25 / 17 LTS
-- **Mobile Engine:** Appium 2.x + UiAutomator2 Driver
+An enterprise-grade **Mobile Automation Framework** was designed and implemented:
+- **Language:** Java 25 (compiled to release 17)
+- **Mobile Engine:** Appium 3.8.0 + UiAutomator2 8.7.0 Driver
 - **Test Framework:** TestNG
-- **Design Pattern:** Page Object Model (POM) with clean separation of Page Objects, Locators, and Test Classes
-- **Target Journeys Automated:**
-  1. `AUTO-001`: Valid Login Flow
-  2. `AUTO-002`: Invalid Login & Validation Feedback
-  3. `AUTO-003`: Home Dashboard Component Verification
-  4. `AUTO-004`: Attendance Clock-In & Session Timer Verification
-  5. `AUTO-005`: Leave Application & Pending Request Verification
+- **Execution Target:** Physical device realme RMX3491 (Android 12)
+- **Target Journeys & Current Status:**
+  1. `AUTO-001`: Valid Login Flow — **Passed**
+  2. `AUTO-002`: Invalid Login & Validation Feedback — **Passed**
+  3. `AUTO-003`: Home Dashboard Component Verification — **Passed**
+  4. `AUTO-004`: Attendance Clock-In & Session Timer Verification — **Clock-in works; final "Done" step not yet validated**
+  5. `AUTO-005`: Leave Application & Pending Request Verification — **Implemented, not yet executed**
 
 ---
 
 ## 5. API Testing Strategy
 
-To evaluate backend stability and contract compliance, 3 major API groups were targeted:
+To evaluate backend stability and contract compliance, 3 major API groups were targeted in Postman:
 1. **Authentication API:** Token generation, invalid password rejection (401), missing payload validation (400).
 2. **Attendance API:** Clock-in punch submission, tokenless punch rejection (401), daily status retrieval, and invalid regularization handling (404/400).
 3. **Leave API:** Leave balance retrieval, valid leave booking, balance overdraft rejection (422), and missing reason rejection (400).
 
-Artifacts provided:
-- Comprehensive **Postman Collection v2.1** with pre-request scripts and automated status/latency/body assertions.
-- **Postman Environment** configuration file.
-- **Python zero-dependency API runner** (`api_runner.py`) for automated CLI regression.
+> *Note: Kredily's API is not publicly documented; endpoints were designed based on HRMS workflows. When executed against `https://api.aiagent.kredily.com`, the server responded with 502 Bad Gateway.*
 
 ---
 
 ## 6. AI-Assisted QA Insights
 
-Generative AI (ChatGPT) was incorporated as an advisory review tool:
-- Acted as a peer reviewer to critique manual test cases for coverage gaps.
-- Guided the QA engineer to validate advance leave notice policies (identifying the 15-day policy constraint).
-- Prompted cross-view attendance validation that led directly to the identification of **BUG-002**.
-- Maintained strict human-in-the-loop validation ensuring zero fabricated claims.
+Generative AI was incorporated responsibly:
+- **ChatGPT:** Acted as a peer reviewer to critique manual test cases for coverage gaps, advance notice rules, and attendance cross-view consistency.
+- **Claude:** Assisted as a technical debugging assistant during Appium framework setup, realme adb permission handling, and locator stabilization.
+- **Human Accountability:** Every finding and code adjustment was reviewed, executed, and validated manually by the QA engineer.
 
 ---
 
@@ -107,7 +103,9 @@ Generative AI (ChatGPT) was incorporated as an advisory review tool:
 
 ### **Verdict:** ⚠️ **CONDITIONAL PASS / ACTION REQUIRED BEFORE PRODUCTION RELEASE**
 
-While basic employee operations (login, clock-in, leave application) function properly, the mobile application should **not** proceed to full production deployment until the following items are resolved:
+Automation status: **3 of 5 journeys passing on physical device; remaining two pending final-step validation.**
+
+The mobile application should not proceed to full production deployment until the following items are resolved:
 1. **Fix BUG-004 immediately:** Ensure attendance regularizations can be approved without backend log failures.
 2. **Fix BUG-001:** Resolve mobile app and geolocation telemetry capturing during clock-ins.
 3. **Fix BUG-003:** Rectify attendance date mapping under Approvals to prevent `"Day detail unavailable"`.

@@ -4,7 +4,7 @@
 > **Candidate Name:** Monika Shankar  
 > **Target Application:** Kredily HRMS Android APK (v2.0)  
 > **APK Link:** [Download Kredily Mobile APK](https://download.aiagent.kredily.com/static/kredily-mobile-v2.apk)  
-> **Test Account:** `peoplekredily1@yopmail.com` | `Pass@9865`  
+> **Test Account:** `peoplekredily1@yopmail.com`  
 > **Repository:** [https://github.com/MonikaS05/Kredily_Testing](https://github.com/MonikaS05/Kredily_Testing)  
 
 ---
@@ -24,16 +24,16 @@
 
 ## 🚀 Executive Summary
 
-This repository contains the end-to-end Quality Assurance deliverables for the **Kredily HRMS Android Application**. The evaluation spans manual exploratory testing, structured functional test cases, defect reporting with multimedia evidence, Appium mobile test automation design, backend API testing collections, and AI-assisted QA analysis.
+This repository contains the end-to-end Quality Assurance deliverables for the **Kredily HRMS Android Application**. The evaluation spans manual exploratory testing, structured functional test cases, defect reporting with multimedia evidence, Appium mobile test automation, backend API testing design, and AI-assisted QA analysis.
 
 ### Evaluation Criteria Breakdown
 | Evaluation Area | Weight | Coverage in this Repository |
 | :--- | :---: | :--- |
 | **Manual & Functional Testing** | 25% | **21 Test Cases** executed across Login, OTP, Dashboard, Attendance, Leave, Payroll, Holidays, and Expense |
 | **Bug Finding & Reporting** | 20% | **5 Genuine Defects** documented with reproduction steps, severity, and screenshots/videos |
-| **Mobile Automation** | 30% | **5 Critical User Journeys** automated in Java + Appium 2.x + TestNG using Page Object Model |
-| **API Testing** | 10% | **Postman Collection v2.1** covering 3 APIs (Auth, Attendance, Leave) with positive & negative tests |
-| **AI Usage** | 10% | AI peer-review documented with prompt, generated review, validated findings, and ethical boundaries |
+| **Mobile Automation** | 30% | **5 journeys implemented; 3 executed and passing on a real device (realme RMX3491, Android 12)** |
+| **API Testing** | 10% | **Postman collection designed for Auth, Attendance and Leave; executed against the base URL (502 Bad Gateway)** |
+| **AI Usage** | 10% | AI peer-review documented with prompt, generated review, validated findings, and debugging assistance |
 | **Documentation & Code Quality** | 5% | Comprehensive Markdown documentation, Excel workbooks, and modular codebase |
 | **Total** | **100%** | **Full Deliverables Package** |
 
@@ -78,8 +78,8 @@ Kredily_Testing/
 │       ├── main/
 │       │   ├── java/com/kredily/automation/
 │       │   │   ├── base/BaseTest.java                 <- Driver lifecycle, capabilities, explicit waits
-│       │   │   ├── pages/LoginPage.java               <- Login page object (includes BUG-005 workaround)
-│       │   │   ├── pages/DashboardPage.java           <- Home dashboard page object
+│       │   │   ├── pages/LoginPage.java               <- email, Sign in with password, password flow
+│       │   │   ├── pages/DashboardPage.java           <- Verified locators for the Home dashboard
 │       │   │   ├── pages/AttendancePage.java          <- Clock In / Clock Out page object
 │       │   │   ├── pages/LeavePage.java               <- Leave application page object
 │       │   │   └── utils/ConfigReader.java            <- Properties reader utility
@@ -136,15 +136,23 @@ During test execution, **5 genuine bugs** were discovered, documented, and class
 
 ## 📱 Mobile Automation Framework (Appium + TestNG)
 
-An enterprise **Page Object Model (POM)** mobile automation suite was built using Java 17/25, Appium 2.x, and TestNG to automate the 5 required user journeys:
+The mobile automation suite was built using **Java 25 (compiled to release 17)**, **Appium 3.8.0**, and **UiAutomator2 8.7.0** on TestNG, structured under the Page Object Model (POM):
 
-| Test ID | User Journey | Target Flow & Assertions |
-| :--- | :--- | :--- |
-| **AUTO-001** | Valid Login | Validates employee authentication and verifies Home dashboard lands successfully. |
-| **AUTO-002** | Invalid Login | Validates rejection of incorrect password and verifies validation error banner. |
-| **AUTO-003** | Dashboard Validation | Validates critical dashboard widgets (Shift, Approvals, Team Today, This Week, Quick Actions). |
-| **AUTO-004** | Attendance Check-in | Automates Clock In action, confirms prompt, and validates working session timer. |
-| **AUTO-005** | Leave Application | Automates Casual Leave application (15+ days notice) and verifies Pending state under My Requests. |
+| Test ID | User Journey | Target Flow & Assertions | Status |
+| :--- | :--- | :--- | :--- |
+| **AUTO-001** | Valid Login | Enter email, tap "Sign in with password", enter password, tap Sign in, then verify Home. | **Passed** |
+| **AUTO-002** | Invalid Login | Enter email, tap "Sign in with password", enter wrong password from `config.properties`, verify error feedback. | **Passed** |
+| **AUTO-003** | Dashboard Validation | Starts from a logged-in session and checks Shift card, Needs you/Approvals, Team today, This week, Quick actions, and the bottom tabs. | **Passed** |
+| **AUTO-004** | Attendance Check-in | Tap Clock In, verify & confirm screen (GPS, geofence, shift window), tap the bottom Clock In button, then Done screen. | **Clock-in works; final "Done" step not yet validated** |
+| **AUTO-005** | Leave Application | Submit Casual Leave request (satisfying the 15-day advance rule) and verify Pending state under My Requests. | **Implemented, not yet executed** |
+
+### 🛠️ Challenges and Fixes
+During framework implementation and real-device execution on a physical **realme RMX3491 (Android 12)**, several real-world mobile automation challenges were encountered and resolved:
+- **React Native UI Architecture:** The app is built with React Native where text elements frequently shift dynamically. Locators were shifted to stable `@resource-id` and accessibility attributes rather than loose text XPaths.
+- **realme ADB Permission Policies:** ColorOS/realme UI blocks certain automated permissions by default. This was resolved by enabling *"Disable permission monitoring"* under Developer Options, adding `options.setCapability("appium:ignoreHiddenApiPolicyError", true);`, and utilizing `noReset=true`.
+- **Session State Carry-Over:** State from previous journeys carried over between tests. Designed tests so that Dashboard and Attendance start from a known session state without conflicting with login flows.
+- **BUG-005 Keyboard Trapping:** Entering credentials occasionally left the soft keyboard open, consuming subsequent taps. Fixed by programmatically calling `driver.hideKeyboard()` and implementing safe retries.
+- **Device Connection & Environment:** Handled physical USB connection drops and environment setup by ensuring `ANDROID_HOME` was configured and adb server was managed cleanly.
 
 👉 **Detailed automation setup & code:** See [mobile-automation/README.md](mobile-automation/README.md).
 
@@ -152,7 +160,7 @@ An enterprise **Page Object Model (POM)** mobile automation suite was built usin
 
 ## 🌐 API Testing (Postman Collection)
 
-A structured API test collection covering **3 core backend modules** was created for Postman:
+A structured API test collection covering **3 core backend modules** was designed for Postman:
 1. **Authentication API:**
    - `POST /api/v1/auth/login` (Positive: Valid Login, extracts Bearer token)
    - `POST /api/v1/auth/login` (Negative: Invalid password returns 401 Unauthorized)
@@ -161,32 +169,39 @@ A structured API test collection covering **3 core backend modules** was created
    - `POST /api/v1/attendance/punch` (Positive: Mobile Clock-In with GPS data)
    - `POST /api/v1/attendance/punch` (Negative: Missing Auth Token returns 401)
    - `GET /api/v1/attendance/daily-status` (Positive: Fetch daily attendance summary)
-   - `POST /api/v1/attendance/regularize/approve` (Negative: Invalid log ID returns 400/404, matching BUG-004)
+   - `POST /api/v1/attendance/regularize/approve` (Negative: Invalid log ID returns 400/404, intended to mirror the behaviour observed in the app (BUG-004))
 3. **Leave Management API:**
    - `GET /api/v1/leaves/balances` (Positive: Fetch Casual, Sick, Comp-off balances)
    - `POST /api/v1/leaves/apply` (Positive: Valid leave application)
    - `POST /api/v1/leaves/apply` (Negative: Advance notice violation < 15 days returns 422)
    - `POST /api/v1/leaves/apply` (Negative: Missing mandatory reason returns 400)
 
+> **⚠️ API Documentation & Execution Note:**  
+> Kredily's API is not publicly documented; these endpoints are designed, not confirmed.  
+> Executed `AUTH-001` against `https://api.aiagent.kredily.com`; the response was **502 Bad Gateway** with an empty body, so assertions could not be validated.
+
 ### How to Import & Run Postman Collection:
 1. Open **Postman**.
 2. Click **Import** → select `api-testing/Kredily_API_Collection.postman_collection.json`.
 3. Import `api-testing/Kredily_Environment.postman_environment.json`.
 4. Select **Kredily HRMS Environment** in the top-right environment selector.
-5. Click **Run Collection** to execute all tests automatically.
+5. Click **Run Collection** to inspect the designed request schemas and tests.
 
 ---
 
 ## 🤖 AI-Assisted QA
 
-Generative AI (ChatGPT) was utilized as an advisory **QA Review Assistant** to perform coverage review on manually designed test cases:
-- **Prompt Used:** Prompted AI as a Senior QA to review test coverage across workflows, negative paths, boundary validations, and edge cases without fabricating results.
-- **AI Output:** Recommended validating boundary conditions on leave advance application, session states, and cross-view attendance consistency.
-- **QA Action & Validation:**
-  - Explored the 15-day future-dated leave rule (`KRD-FUN-014`).
-  - Cross-checked Team vs Me views which directly led to the discovery of **BUG-002**.
-  - Validated regularization approvals which led directly to uncovering **BUG-003** and **BUG-004**.
-- **Human-in-the-Loop Principle:** 100% of defect logging, test execution, and evidence collection were performed manually by the QA engineer.
+Generative AI was utilized in two distinct roles during this assignment:
+1. **ChatGPT (QA Review Assistant):**
+   - **Prompt Used:** Prompted AI as a Senior QA to review test coverage across workflows, negative paths, boundary validations, and edge cases without fabricating results.
+   - **AI Output:** Recommended validating boundary conditions on leave advance application, session states, and cross-view attendance consistency.
+   - **QA Action & Validation:**
+     - Explored the 15-day future-dated leave rule (`KRD-FUN-014`).
+     - Cross-checked Team vs Me views which directly led to the discovery of **BUG-002**.
+     - Validated regularization approvals which led directly to uncovering **BUG-003** and **BUG-004**.
+2. **Debugging Assistant (Claude):**
+   - AI (Claude) was also used as a debugging assistant while setting up and running the Appium framework; I executed all commands on my device and reviewed all changes.
+3. **Human-in-the-Loop Principle:** 100% of defect logging, test execution on real hardware, and evidence collection were performed and verified manually by the QA engineer.
 
 👉 **Full prompt and review details:** [docs/AI_ASSISTED_QA.md](docs/AI_ASSISTED_QA.md) or open `Kredily_AI_Assisted.xlsx`.
 
@@ -195,27 +210,39 @@ Generative AI (ChatGPT) was utilized as an advisory **QA Review Assistant** to p
 ## ⚙️ Setup & Execution Instructions
 
 ### Mobile Automation Setup:
-1. **Prerequisites:**
-   - JDK 17+ (or JDK 25)
+1. **Prerequisites & Device Setup:**
+   - JDK 17+ (or JDK 25 compiled to release 17)
    - Apache Maven 3.8+
-   - Node.js & Appium 2.x:
+   - Configure `ANDROID_HOME` in environment variables pointing to Android SDK.
+   - Node.js & Appium 3.8.0 with UiAutomator2 8.7.0:
      ```bash
      npm install -g appium
      appium driver install uiautomator2
      ```
-   - Android SDK with an active emulator or USB debugging device.
+   - Connect physical device (e.g. realme RMX3491) with **USB debugging enabled** and enable **"Disable permission monitoring"** in Developer Options.
+   - Install the Kredily APK and confirm package (`com.kredily.mobile`) and launcher activity (`.MainActivity`).
+   - Configure `mobile-automation/src/main/resources/config.properties` with `device.name` and `platform.version`.
+   - **Session State Note:** Keep the phone logged in for Dashboard (`AUTO-003`) and Attendance (`AUTO-004`) tests, and logged out for Login tests (`AUTO-001`, `AUTO-002`).
+
 2. **Compile the Framework:**
    ```bash
    cd mobile-automation
    mvn clean test-compile
    ```
+
 3. **Execute the Suite:**
    ```bash
-   # Start Appium server
-   appium
+   # Terminal 1: Start Appium server
+   appium --use-plugins=relaxed-caps
 
-   # Run tests via Maven
+   # Terminal 2: Run all tests via Maven
+   cd mobile-automation
    mvn clean test
+
+   # Or run specific test classes:
+   mvn clean test -Dtest=LoginTest
+   mvn clean test -Dtest=DashboardTest
+   mvn clean test -Dtest=AttendanceTest
    ```
 
 ---
@@ -223,7 +250,9 @@ Generative AI (ChatGPT) was utilized as an advisory **QA Review Assistant** to p
 ## 🏁 Final QA Recommendation
 
 ### **Quality Gate Status:** ⚠️ **CONDITIONAL PASS**
-The Kredily HRMS Android application demonstrates good baseline functionality for daily clock-ins and leave requests. However, **production release is not recommended until the following defects are resolved:**
+The Kredily HRMS Android application demonstrates good baseline functionality for daily clock-ins and leave requests. Automation status: **3 of 5 journeys passing; remaining two pending final-step validation.**
+
+However, **production release is not recommended until the following defects are resolved:**
 1. **BUG-004 (High):** Approving attendance regularization fails with *"Attendance log not found"*, blocking timesheet approvals.
 2. **BUG-001 (Medium):** Mobile clock-in fails to capture mobile app and GPS coordinates.
 3. **BUG-003 (Medium):** Regularization view maps to wrong date displaying *"Day detail unavailable"*.
